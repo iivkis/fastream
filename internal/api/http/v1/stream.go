@@ -45,7 +45,7 @@ func (c *StreamController) getWatcherAnswer(watherConn *websocket.Conn, offer *w
 
 	var answer webrtc.SessionDescription
 	if err := watherConn.ReadJSON(&answer); err != nil {
-		watherConn.WriteJSON(NewResponse(nil, err))
+		watherConn.WriteJSON(newResponse(nil, err))
 		return nil
 	}
 
@@ -55,13 +55,13 @@ func (c *StreamController) getWatcherAnswer(watherConn *websocket.Conn, offer *w
 func (c *StreamController) WSCreate(ctx *gin.Context) {
 	conn, err := c.upgrader.Upgrade(ctx.Writer, ctx.Request, nil)
 	if err != nil {
-		ctx.JSON(http.StatusBadRequest, NewResponse(nil, err))
+		ctx.JSON(http.StatusBadRequest, newResponse(nil, err))
 		return
 	}
 	defer conn.Close()
 
 	if !c.mx.TryLock() {
-		conn.WriteJSON(NewResponse(nil, fmt.Errorf("stream already exists")))
+		conn.WriteJSON(newResponse(nil, fmt.Errorf("stream already exists")))
 		return
 	}
 	defer c.mx.Unlock()
@@ -102,7 +102,7 @@ func (c *StreamController) WSCreate(ctx *gin.Context) {
 func (c *StreamController) WSWatch(ctx *gin.Context) {
 	conn, err := c.upgrader.Upgrade(ctx.Writer, ctx.Request, nil)
 	if err != nil {
-		ctx.JSON(http.StatusBadRequest, NewResponse(nil, err))
+		ctx.JSON(http.StatusBadRequest, newResponse(nil, err))
 		return
 	}
 	defer conn.Close()
