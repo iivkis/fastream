@@ -1,7 +1,7 @@
 package main
 
-import "github.com/iivkis/fastream/internal/app"
+import "github.com/iivkis/fastream/internal/launcher"
 
 func main() {
-	app.Launch()
+	launcher.Launch()
 }

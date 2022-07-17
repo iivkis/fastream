@@ -77,7 +77,7 @@ func (c *StreamController) WSCreate(ctx *gin.Context) {
 
 	c.ownerConn = conn
 
-	//отправить пустой объект, чтобы получить offer
+	//send empty object {} to get offer
 	go func() {
 		for range c.requestOfferChan {
 			conn.WriteJSON(gin.H{})

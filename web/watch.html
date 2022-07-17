@@ -7,15 +7,23 @@
         <title>watch</title>
     </head>
     <body>
-        <video id="watch" width="500" autoplay controls style="border: 2px solid green;"></video>
+        <video
+            id="watch"
+            width="500"
+            controls
+            autoplay
+            playsinline
+            muted
+            style="border: 2px solid green"
+        ></video>
     </body>
 
     <script>
         class BroadcastWatch {
             constructor(docVideo) {
                 this._video = docVideo;
-              
-                this._pc = this._newRTCPeerConn()
+
+                this._pc = this._newRTCPeerConn();
                 this._initPeerConnectionEventListeners();
             }
 
@@ -52,9 +60,9 @@
                 };
 
                 this._pc.ontrack = (event) => {
-                    console.info("@track:", event)
-                    document.getElementById('watch').srcObject = event.streams[0];
-                }
+                    console.info("@track:", event);
+                    this._video.srcObject = event.streams[0];
+                };
             }
         }
 
@@ -66,7 +74,9 @@
             }
 
             _newWebsocket() {
-                let ws = new WebSocket("ws://localhost:8080/api/v1/ws/stream/watch");
+                let ws = new WebSocket(
+                    "ws://192.168.1.70:8080/api/v1/ws/stream/watch"
+                );
 
                 ws.onerror = (err) => {
                     alert("ошибка подключения к серверу =(");
@@ -83,32 +93,32 @@
             }
 
             async _onmessage(json) {
-                console.log('@onmessage:', json)
+                console.log("@onmessage:", json);
 
                 if (json.error) return console.error(json);
 
                 if (json.type) {
                     let pc = this._broadcast.PeerConnection();
-                    await pc.setRemoteDescription(json)
+                    await pc.setRemoteDescription(json);
 
                     pc.onicecandidate = (event) => {
                         if (event.candidate === null) {
-                            console.log("@ice NULL candidate:", event)
-                            this._ws.send(JSON.stringify(pc.localDescription))
+                            console.log("@ice NULL candidate:", event);
+                            this._ws.send(JSON.stringify(pc.localDescription));
                         }
-                    }
+                    };
 
-                    pc.createAnswer()
-                        .then(answer => {
-                            pc.setLocalDescription(answer)
-                        })
+                    pc.createAnswer().then((answer) => {
+                        pc.setLocalDescription(answer);
+                    });
                 }
             }
         }
 
         function main() {
-            let video = document.getElementById('watch')
-            new WebSocketStreamWatch(new BroadcastWatch(video));
+            let video = document.getElementById("watch");
+            let bw = new BroadcastWatch(video);
+            new WebSocketStreamWatch(bw);
         }
 
         window.onload = main;
