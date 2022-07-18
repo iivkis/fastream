@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8" />
+        <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <title>watch</title>
+    </head>
+    <body>
+        <video
+            id="watch"
+            width="500"
+            controls
+            autoplay
+            playsinline
+            muted
+            style="border: 2px solid green"
+        ></video>
+    </body>
+
+    <script>
+        class BroadcastWatch {
+            constructor(docVideo) {
+                this._video = docVideo;
+
+                this._pc = this._newRTCPeerConn();
+                this._initPeerConnectionEventListeners();
+            }
+
+            PeerConnection() {
+                return this._pc;
+            }
+
+            _newRTCPeerConn() {
+                return new RTCPeerConnection({
+                    iceServers: [
+                        {
+                            urls: [
+                                "stun:stun.l.google.com:19302",
+                                "stun:stun1.l.google.com:19302",
+                                "stun:stun2.l.google.com:19302",
+                                "stun:stun3.l.google.com:19302",
+                                "stun:stun4.l.google.com:19302",
+                            ],
+                        },
+                    ],
+                });
+            }
+
+            _initPeerConnectionEventListeners() {
+                this._pc.oniceconnectionstatechange = () => {
+                    console.info(
+                        "@ice connection state change:",
+                        this._pc.iceConnectionState
+                    );
+                };
+
+                this._pc.onicecandidateerror = (err) => {
+                    console.error("@ice candidate error:", err);
+                };
+
+                this._pc.ontrack = (event) => {
+                    console.info("@track:", event);
+                    this._video.srcObject = event.streams[0];
+                };
+            }
+        }
+
+        class WebSocketStreamWatch {
+            constructor(_BroadcastWatch) {
+                this._broadcast = _BroadcastWatch;
+
+                this._ws = this._newWebsocket();
+            }
+
+            _newWebsocket() {
+                let ws = new WebSocket(
+                    "ws://192.168.1.70:8080/api/v1/ws/stream/watch"
+                );
+
+                ws.onerror = (err) => {
+                    alert("ошибка подключения к серверу =(");
+                    console.error("ws connection:", err);
+                };
+
+                ws.onopen = () => {
+                    console.info("ws connection: success connect to server!");
+                };
+
+                ws.onmessage = ({ data }) => this._onmessage(JSON.parse(data));
+
+                return ws;
+            }
+
+            async _onmessage(json) {
+                console.log("@onmessage:", json);
+
+                if (json.error) return console.error(json);
+
+                if (json.type) {
+                    let pc = this._broadcast.PeerConnection();
+                    await pc.setRemoteDescription(json);
+
+                    pc.onicecandidate = (event) => {
+                        if (event.candidate === null) {
+                            console.log("@ice NULL candidate:", event);
+                            this._ws.send(JSON.stringify(pc.localDescription));
+                        }
+                    };
+
+                    pc.createAnswer().then((answer) => {
+                        pc.setLocalDescription(answer);
+                    });
+                }
+            }
+        }
+
+        function main() {
+            let video = document.getElementById("watch");
+            let bw = new BroadcastWatch(video);
+            new WebSocketStreamWatch(bw);
+        }
+
+        window.onload = main;
+    </script>
+</html>

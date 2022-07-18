@@ -19,7 +19,12 @@ func NewUI() *UI {
 
 func (ui *UI) init() {
 	ui.app = app.New()
+
 	ui.win = ui.app.NewWindow("Fastream")
+	ui.win.Resize(fyne.NewSize(300, 400))
+	ui.win.SetFixedSize(true)
+	ui.win.CenterOnScreen()
+
 	containers.New(ui.win)
 }
 
