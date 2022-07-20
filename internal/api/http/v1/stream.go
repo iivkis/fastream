@@ -40,12 +40,12 @@ func (c *StreamController) getOwnerOffer() *webrtc.SessionDescription {
 	return <-c.offersChan
 }
 
-func (c *StreamController) getWatcherAnswer(watherConn *websocket.Conn, offer *webrtc.SessionDescription) *webrtc.SessionDescription {
-	watherConn.WriteJSON(offer)
+func (c *StreamController) getWatcherAnswer(watcherConn *websocket.Conn, offer *webrtc.SessionDescription) *webrtc.SessionDescription {
+	watcherConn.WriteJSON(offer)
 
 	var answer webrtc.SessionDescription
-	if err := watherConn.ReadJSON(&answer); err != nil {
-		watherConn.WriteJSON(newResponse(nil, err))
+	if err := watcherConn.ReadJSON(&answer); err != nil {
+		watcherConn.WriteJSON(newResponse(nil, err))
 		return nil
 	}
 
@@ -77,7 +77,7 @@ func (c *StreamController) WSCreate(ctx *gin.Context) {
 
 	c.ownerConn = conn
 
-	//send empty object {} to get offer
+	//send empty object `{}` to get offer
 	go func() {
 		for range c.requestOfferChan {
 			conn.WriteJSON(gin.H{})
