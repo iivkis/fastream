@@ -2,7 +2,7 @@
     <div class="container mx-auto">
         <div class="wrap">
             <div class="broadcast">
-                <video id="video" autoplay muted controls></video>
+                <video id="watch-video" autoplay muted controls></video>
             </div>
             <div class="chat">
                 <div class="chat__head">

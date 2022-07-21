@@ -2,9 +2,18 @@
     <div class="container mx-auto">
         <div class="wrap">
             <div class="head">
-                <img :src="icon" />
-                <h2>Трансляция запущена</h2>
+                <div class="head-info">
+                    <img class="head-info__icon" :src="icon" />
+                    <h2 class="head-info__text">Трансляция запущена</h2>
+                </div>
+                <div class="head-notice">
+                    <h5 class="head-notice__text">
+                        <span>Примечание:</span> трансляция будет прекращена,
+                        как только вы закроете текущую вкладку браузера
+                    </h5>
+                </div>
             </div>
+
             <div class="main">
                 <div class="qr-code">
                     <img
@@ -18,7 +27,11 @@
                         чтобы подключиться к трансляции:
                     </span>
                     <div class="ip-addr-link">
-                        <router-link class="ip-addr-link__href" to="/watch">
+                        <router-link
+                            class="ip-addr-link__href"
+                            to="/watch"
+                            target="_blank"
+                        >
                             {{ url }}
                         </router-link>
                         <i
@@ -39,15 +52,27 @@
 }
 
 .head {
+    @apply flex flex-col;
+}
+
+.head-info {
     @apply flex justify-center items-center;
 }
 
-.head img {
+.head-info__icon {
     @apply w-8 mr-3;
 }
 
-.head h2 {
+.head-info__text {
     @apply text-3xl font-light;
+}
+
+.head-notice__text {
+    @apply w-2/3 py-2 mx-auto text-slate-600 text-center font-light text-sm;
+}
+
+.head-notice__text span {
+    @apply text-orange-600;
 }
 
 .main {
@@ -89,33 +114,32 @@ import copy from "copy-to-clipboard";
 
 // import img
 import icon from "../assets/icon.png";
+import { WebsocketStreamCreator } from "../service/WebsocketStreamCreator";
 
 export default defineComponent({
     name: "Stream",
-    setup() {
-        // navigator.mediaDevices
-        //     .getDisplayMedia({
-        //         video: {
-        //             width: {
-        //                 ideal: 1366,
-        //                 max: 1920,
-        //             },
-        //             height: {
-        //                 ideal: 768,
-        //                 max: 1080,
-        //             },
-        //             frameRate: 30,
-        //         },
-        //         audio: false,
-        //     })
-        //     .then((stream) => {
-        //         console.log(stream);
-        //     })
-        //     .catch((err) => {
-        //         console.error(err);
-        //     });
-
+    async setup() {
         const url = "http://192.168.1.1:8080/watch";
+
+        const config: DisplayMediaStreamConstraints = {
+            audio: false,
+            video: {
+                width: {
+                    ideal: 1366,
+                    max: 1920,
+                },
+                height: {
+                    ideal: 768,
+                    max: 1080,
+                },
+                frameRate: 30,
+                latency: 0,
+            },
+        };
+
+        const stream = await navigator.mediaDevices.getDisplayMedia(config);
+
+        new WebsocketStreamCreator(stream);
 
         function CopyURLToClipboard() {
             copy(url);

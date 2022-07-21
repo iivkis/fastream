@@ -1,28 +1,77 @@
+import {
+    WebSocketMessage,
+    WebSocketMessageData,
+    ICE_SERVERS_URLS,
+} from "./WebsocketStream.define";
+
+import { v4 as uuidv4 } from "uuid";
+
+class BroadcastStorage {
+    private broadcasts: Array<BroadcastCreator>;
+
+    constructor() {
+        this.broadcasts = [];
+    }
+
+    public Add(broadcast: BroadcastCreator): void {
+        this.broadcasts.push(broadcast);
+    }
+
+    public GetByID(id: string): BroadcastCreator | null {
+        for (let i = 0; i < Object.keys(this.broadcasts).length; i++)
+            if (this.broadcasts[i].ID === id) return this.broadcasts[i];
+        return null;
+    }
+}
+
+// BroadcastCreator исользуется для каждого подключения по WebRTC,
+// чтобы установить peer2peer соединение со стримером и зрителем.
+// Передача SDP из RTCPeerConnection (WebRTC) между стримером и зрителем переходит
+// по веб-сокетам (на уровне выше) через сервер.
 class BroadcastCreator {
-    private readonly stream: MediaStream;
+    // ID (uuid) - уникальное значение каждой трансляции.
+    // Нужно, чтобы одновременно можно было подключить несколько зрителей,
+    // иначе offer sdp и answer sdp будут путаться между собой.
+    public readonly ID: string;
     private readonly pc: RTCPeerConnection;
 
     constructor(stream: MediaStream) {
-        this.stream = stream;
+        this.ID = uuidv4();
 
-        this.pc = this.NewPeerConnection();
+        this.pc = this.newPeerConnection();
+        this.addStreamToPeerConn(stream);
     }
 
     public Conn(): RTCPeerConnection {
         return this.pc;
     }
 
-    private NewPeerConnection(): RTCPeerConnection {
+    //создает новый webRTC offer, оторый будет отправлен зрителю
+    public NewOffer(): Promise<RTCSessionDescription> {
+        return new Promise((resolve, _) => {
+            this.pc.onicecandidate = (event) => {
+                if (event.candidate === null && this.pc.localDescription)
+                    resolve(this.pc.localDescription);
+            };
+
+            this.pc.createOffer().then((sdp) => {
+                this.pc.setLocalDescription(sdp);
+            });
+        });
+    }
+
+    //устанвливает WebRTC answer зрителя
+    public SetRemoteAnswer(remoteSDP: RTCSessionDescription): Promise<void> {
+        return new Promise((resolve, _) => {
+            this.pc.setRemoteDescription(remoteSDP).then(resolve);
+        });
+    }
+
+    private newPeerConnection(): RTCPeerConnection {
         let pc = new RTCPeerConnection({
             iceServers: [
                 {
-                    urls: [
-                        "stun:stun.l.google.com:19302",
-                        "stun:stun1.l.google.com:19302",
-                        "stun:stun2.l.google.com:19302",
-                        "stun:stun3.l.google.com:19302",
-                        "stun:stun4.l.google.com:19302",
-                    ],
+                    urls: ICE_SERVERS_URLS,
                 },
             ],
         });
@@ -40,29 +89,33 @@ class BroadcastCreator {
 
         return pc;
     }
+
+    private addStreamToPeerConn(stream: MediaStream): void {
+        stream.getTracks().forEach((track) => {
+            this.pc.addTrack(track, stream);
+        });
+    }
 }
 
-interface WebSocketMessage {
-    error: string;
-    type: string;
-    sdp: string;
-}
-
+// Веб-сокет обрабочтик, который обменивается SDP.
 class WebsocketStreamCreator {
     private readonly stream: MediaStream;
+    private readonly broadcastStorage: BroadcastStorage;
     private readonly ws: WebSocket;
 
     constructor(stream: MediaStream) {
         this.stream = stream;
-        this.ws = this.NewWebsocketConnection();
+        this.broadcastStorage = new BroadcastStorage();
+        this.ws = this.newWSConn();
     }
 
     public Conn(): WebSocket {
         return this.ws;
     }
 
-    private NewWebsocketConnection(): WebSocket {
-        const ws = new WebSocket("/api/v1/ws/stream/create");
+    private newWSConn(): WebSocket {
+        const ws = new WebSocket("ws:/api/v1/ws/stream/create");
+        console.info("@ws: connectiong...");
 
         ws.onerror = (err) => {
             console.error("@ws:", err);
@@ -72,16 +125,46 @@ class WebsocketStreamCreator {
             console.info("@ws: success connected to server");
         };
 
-        ws.onmessage = ({ data }) =>
-            this.OnMessage(JSON.parse(data) as WebSocketMessage);
+        ws.onmessage = ({ data }) => {
+            let json = JSON.parse(data) as WebSocketMessage;
+
+            if (json.error) return console.error(json.error);
+            else if (json.data) this.setRemoteAnswer(json.data);
+            else this.sendOffer();
+        };
 
         return ws;
     }
 
-    private OnMessage(json: WebSocketMessage): void {
-        if (json.error) return console.error(json.error);
+    private sendOffer(): void {
+        let broadcast = new BroadcastCreator(this.stream);
 
-        // if (json.type)
+        broadcast.NewOffer().then((sdp) => {
+            let msg: WebSocketMessageData = {
+                broadcastID: broadcast.ID,
+                type: sdp.type,
+                sdp: sdp.sdp,
+            };
+
+            this.ws.send(JSON.stringify(msg));
+        });
+
+        this.broadcastStorage.Add(broadcast);
+    }
+
+    private setRemoteAnswer(data: WebSocketMessageData): void {
+        let broadcast = this.broadcastStorage.GetByID(data.broadcastID);
+
+        if (broadcast) {
+            let sdp = new RTCSessionDescription({
+                type: data.type,
+                sdp: data.sdp,
+            });
+
+            broadcast.SetRemoteAnswer(sdp);
+        } else {
+            console.error("undefined broadcastID", data.broadcastID)
+        }
     }
 }
 

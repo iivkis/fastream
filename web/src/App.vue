@@ -1,5 +1,7 @@
 <template>
-    <router-view></router-view>
+    <suspense>
+        <router-view></router-view>
+    </suspense>
 </template>
 
 <style lang="postcss">

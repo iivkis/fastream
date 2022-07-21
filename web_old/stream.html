@@ -52,7 +52,6 @@
                     this._pc.onicecandidate = (event) => {
                         if (event.candidate === null) {
                             console.log("@ice candidate", event);
-                            this._candidateExists = true;
                             resolve(this._pc.localDescription);
                         }
                     };
