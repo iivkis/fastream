@@ -8,8 +8,13 @@ import (
 
 	"github.com/gin-gonic/gin"
 	"github.com/gorilla/websocket"
-	"github.com/pion/webrtc/v3"
 )
+
+type WSMessageData struct {
+	BroadcastID string `json:"broadcastID"`
+	Type        string `json:"type"`
+	SDP         string `json:"sdp"`
+}
 
 type StreamController struct {
 	mx sync.Mutex
@@ -17,7 +22,7 @@ type StreamController struct {
 	upgrader  *websocket.Upgrader
 	ownerConn *websocket.Conn
 
-	offersChan       chan *webrtc.SessionDescription
+	offersChan       chan *WSMessageData
 	requestOfferChan chan struct{}
 }
 
@@ -28,22 +33,22 @@ func NewStreamController() *StreamController {
 				return true
 			}},
 
-		offersChan:       make(chan *webrtc.SessionDescription),
+		offersChan:       make(chan *WSMessageData),
 		requestOfferChan: make(chan struct{}),
 	}
 
 	return controller
 }
 
-func (c *StreamController) getOwnerOffer() *webrtc.SessionDescription {
+func (c *StreamController) getOwnerOffer() *WSMessageData {
 	c.requestOfferChan <- struct{}{}
 	return <-c.offersChan
 }
 
-func (c *StreamController) getWatcherAnswer(watcherConn *websocket.Conn, offer *webrtc.SessionDescription) *webrtc.SessionDescription {
-	watcherConn.WriteJSON(offer)
+func (c *StreamController) getWatcherAnswer(watcherConn *websocket.Conn, offer *WSMessageData) *WSMessageData {
+	watcherConn.WriteJSON(newResponse(offer, nil))
 
-	var answer webrtc.SessionDescription
+	var answer WSMessageData
 	if err := watcherConn.ReadJSON(&answer); err != nil {
 		watcherConn.WriteJSON(newResponse(nil, err))
 		return nil
@@ -77,25 +82,22 @@ func (c *StreamController) WSCreate(ctx *gin.Context) {
 
 	c.ownerConn = conn
 
-	//send empty object `{}` to get offer
 	go func() {
 		for range c.requestOfferChan {
-			conn.WriteJSON(gin.H{})
+			//send empty object `{}` to get offer
+			conn.WriteJSON(newResponse(gin.H{}, nil))
 		}
 	}()
 
-	//catch offer
-	{
-		var offer webrtc.SessionDescription
+	for {
+		var offer WSMessageData
 
-		for {
-			if err := c.ownerConn.ReadJSON(&offer); err != nil {
-				log.Println(err)
-				return
-			}
-
-			c.offersChan <- &offer
+		if err := c.ownerConn.ReadJSON(&offer); err != nil {
+			log.Println(err)
+			return
 		}
+
+		c.offersChan <- &offer
 	}
 }
 
@@ -111,7 +113,13 @@ func (c *StreamController) WSWatch(ctx *gin.Context) {
 
 	if answer := c.getWatcherAnswer(conn, offer); answer != nil {
 		if c.ownerConn != nil {
-			c.ownerConn.WriteJSON(answer)
+			msg := newResponse(WSMessageData{
+				BroadcastID: answer.BroadcastID,
+				Type:        answer.Type,
+				SDP:         answer.SDP,
+			}, nil)
+
+			c.ownerConn.WriteJSON(msg)
 		}
 	}
 }

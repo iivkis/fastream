@@ -2,16 +2,13 @@ package apihv1
 
 type stdResponse struct {
 	Data  interface{} `json:"data"`
-	Error string      `json:"error"`
+	Error string      `json:"error,omitempty"`
 }
 
 func newResponse(data interface{}, err error) *stdResponse {
-	reponse := stdResponse{}
-	reponse.Data = data
-
+	resp := stdResponse{Data: data}
 	if err != nil {
-		reponse.Error = err.Error()
+		resp.Error = err.Error()
 	}
-
-	return &reponse
+	return &resp
 }
