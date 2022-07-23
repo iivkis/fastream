@@ -47,17 +47,21 @@
 
 <script lang="ts">
 import { defineComponent, onMounted } from "vue";
+import { WebsocketStreamWatcher } from "../service/WebsocketStream/WebsocketStreamWatcher";
 
-// import img
 import icon from "../assets/icon.png";
-import { WebsocketStreamWatcher } from "../service/WebsocketStreamWatcher";
 
 export default defineComponent({
     name: "Watch",
     setup() {
         onMounted(() => {
             const video = document.getElementById("watch-video");
-            new WebsocketStreamWatcher(video as HTMLMediaElement);
+
+            if (video) {
+                new WebsocketStreamWatcher(video as HTMLMediaElement);
+            } else {
+                console.error("video tag undefined");
+            }
         });
 
         return {

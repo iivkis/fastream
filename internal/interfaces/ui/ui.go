@@ -3,7 +3,7 @@ package ui
 import (
 	"fyne.io/fyne/v2"
 	"fyne.io/fyne/v2/app"
-	"github.com/iivkis/fastream/internal/ui/containers"
+	"github.com/iivkis/fastream/internal/interfaces/ui/containers"
 )
 
 type UI struct {
@@ -19,13 +19,8 @@ func NewUI() *UI {
 
 func (ui *UI) init() {
 	ui.app = app.New()
-
 	ui.win = ui.app.NewWindow("Fastream")
-	ui.win.Resize(fyne.NewSize(300, 400))
-	ui.win.SetFixedSize(true)
-	ui.win.CenterOnScreen()
-
-	containers.New(ui.win)
+	containers.Add(ui.win)
 }
 
 func (ui *UI) Run() {

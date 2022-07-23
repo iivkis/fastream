@@ -1,4 +1,4 @@
-package apictrlv1
+package restfulv1
 
 type stdResponse struct {
 	Data  interface{} `json:"data"`

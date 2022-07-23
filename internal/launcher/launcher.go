@@ -3,10 +3,10 @@ package launcher
 import (
 	"fmt"
 
-	httph "github.com/iivkis/fastream/internal/api/http"
 	"github.com/iivkis/fastream/internal/config"
 	"github.com/iivkis/fastream/internal/distributor"
-	"github.com/iivkis/fastream/internal/ui"
+	httph "github.com/iivkis/fastream/internal/interfaces/api/http"
+	"github.com/iivkis/fastream/internal/interfaces/ui"
 )
 
 func Launch() {

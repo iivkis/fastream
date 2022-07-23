@@ -3,7 +3,7 @@ package httph
 import (
 	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
-	apictrlv1 "github.com/iivkis/fastream/internal/api/http/v1"
+	restfulv1 "github.com/iivkis/fastream/internal/interfaces/api/http/v1"
 )
 
 type HTTPHandler struct {
@@ -18,7 +18,7 @@ func NewHTTPHandler() *HTTPHandler {
 
 func (h *HTTPHandler) init() {
 	h.engine.Use(cors.Default())
-	apictrlv1.SetControllers(h.engine)
+	restfulv1.SetControllers(h.engine)
 }
 
 func (h *HTTPHandler) Run(addr string) error {

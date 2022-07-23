@@ -114,7 +114,7 @@ import copy from "copy-to-clipboard";
 
 // import img
 import icon from "../assets/icon.png";
-import { WebsocketStreamCreator } from "../service/WebsocketStreamCreator";
+import { WebsocketStreamCreator } from "../service/WebsocketStream/WebsocketStreamCreator";
 
 export default defineComponent({
     name: "Stream",

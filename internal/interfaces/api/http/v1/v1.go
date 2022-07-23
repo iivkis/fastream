@@ -1,4 +1,4 @@
-package apictrlv1
+package restfulv1
 
 import (
 	"github.com/gin-gonic/gin"
@@ -8,11 +8,13 @@ type Controllers struct {
 	engine *gin.Engine
 
 	Stream *StreamController
+	Utils  *UtilsController
 }
 
 func SetControllers(engine *gin.Engine) {
 	handler := Controllers{
 		Stream: NewStreamController(),
+		Utils:  NewUtilsController(),
 	}
 
 	handler.engine = engine
@@ -30,5 +32,10 @@ func (h *Controllers) setAPI() {
 	{
 		api.GET("/ws/stream/create", h.Stream.WSCreate)
 		api.GET("/ws/stream/watch", h.Stream.WSWatch)
+	}
+
+	//utils
+	{
+		api.GET("/utils/local_ip", h.Utils.GetLocalIP)
 	}
 }
