@@ -75,8 +75,8 @@ ul.about {
 }
 
 .about-item__action {
-    @apply bg-orange-600 text-white;
     @apply w-2/3 px-5 py-3 mt-4 rounded-sm;
+    @apply bg-orange-600 text-white;
     @apply hover:bg-orange-700;
 }
 </style>

@@ -11,6 +11,7 @@ import (
 	"fyne.io/fyne/v2/dialog"
 	"fyne.io/fyne/v2/layout"
 	"fyne.io/fyne/v2/widget"
+	"github.com/iivkis/fastream/internal/config"
 )
 
 var _ content = (*HomeContainer)(nil)
@@ -36,19 +37,16 @@ func (c *HomeContainer) GetContent() *fyne.Container {
 
 func (c *Containers) InitHomeContainer() {
 	c.Home.BtnStartStream = widget.NewButton("начать стрим", func() {
-		url := "http://localhost:8080"
+		webUI := fmt.Sprintf("http://%s:%s", config.Env.SPA_HOST, config.Env.SPA_PORT)
 
 		switch runtime.GOOS {
 		case "linux":
-			exec.Command("xdg-open", url).Start()
+			exec.Command("xdg-open", webUI).Start()
 		case "windows":
-			exec.Command("explorer", url).Start()
+			exec.Command("explorer", webUI).Start()
 		default:
 			dialog.ShowError(fmt.Errorf("платформа не поддерживается"), c.win)
 		}
-
-		time.Sleep(time.Second)
-		c.win.RequestFocus()
 	})
 
 	c.Home.BtnCopyAddrLink = widget.NewButton("копировать ссылку на стрим", func() {

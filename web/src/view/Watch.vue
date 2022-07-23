@@ -46,14 +46,20 @@
 </style>
 
 <script lang="ts">
-import { defineComponent } from "vue";
+import { defineComponent, onMounted } from "vue";
 
 // import img
 import icon from "../assets/icon.png";
+import { WebsocketStreamWatcher } from "../service/WebsocketStreamWatcher";
 
 export default defineComponent({
     name: "Watch",
     setup() {
+        onMounted(() => {
+            const video = document.getElementById("watch-video");
+            new WebsocketStreamWatcher(video as HTMLMediaElement);
+        });
+
         return {
             icon,
         };

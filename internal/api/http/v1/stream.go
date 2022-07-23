@@ -1,4 +1,4 @@
-package apihv1
+package apictrlv1
 
 import (
 	"fmt"
@@ -10,7 +10,7 @@ import (
 	"github.com/gorilla/websocket"
 )
 
-type WSMessageData struct {
+type WebsocketMessageData struct {
 	BroadcastID string `json:"broadcastID"`
 	Type        string `json:"type"`
 	SDP         string `json:"sdp"`
@@ -22,7 +22,7 @@ type StreamController struct {
 	upgrader  *websocket.Upgrader
 	ownerConn *websocket.Conn
 
-	offersChan       chan *WSMessageData
+	offersChan       chan *WebsocketMessageData
 	requestOfferChan chan struct{}
 }
 
@@ -33,22 +33,22 @@ func NewStreamController() *StreamController {
 				return true
 			}},
 
-		offersChan:       make(chan *WSMessageData),
+		offersChan:       make(chan *WebsocketMessageData),
 		requestOfferChan: make(chan struct{}),
 	}
 
 	return controller
 }
 
-func (c *StreamController) getOwnerOffer() *WSMessageData {
+func (c *StreamController) getOwnerOffer() *WebsocketMessageData {
 	c.requestOfferChan <- struct{}{}
 	return <-c.offersChan
 }
 
-func (c *StreamController) getWatcherAnswer(watcherConn *websocket.Conn, offer *WSMessageData) *WSMessageData {
+func (c *StreamController) getWatcherAnswer(watcherConn *websocket.Conn, offer *WebsocketMessageData) *WebsocketMessageData {
 	watcherConn.WriteJSON(newResponse(offer, nil))
 
-	var answer WSMessageData
+	var answer WebsocketMessageData
 	if err := watcherConn.ReadJSON(&answer); err != nil {
 		watcherConn.WriteJSON(newResponse(nil, err))
 		return nil
@@ -90,7 +90,7 @@ func (c *StreamController) WSCreate(ctx *gin.Context) {
 	}()
 
 	for {
-		var offer WSMessageData
+		var offer WebsocketMessageData
 
 		if err := c.ownerConn.ReadJSON(&offer); err != nil {
 			log.Println(err)
@@ -113,7 +113,7 @@ func (c *StreamController) WSWatch(ctx *gin.Context) {
 
 	if answer := c.getWatcherAnswer(conn, offer); answer != nil {
 		if c.ownerConn != nil {
-			msg := newResponse(WSMessageData{
+			msg := newResponse(WebsocketMessageData{
 				BroadcastID: answer.BroadcastID,
 				Type:        answer.Type,
 				SDP:         answer.SDP,

@@ -125,11 +125,11 @@ export default defineComponent({
             audio: false,
             video: {
                 width: {
-                    ideal: 1366,
+                    ideal: 1920,
                     max: 1920,
                 },
                 height: {
-                    ideal: 768,
+                    ideal: 1080,
                     max: 1080,
                 },
                 frameRate: 30,

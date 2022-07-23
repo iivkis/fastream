@@ -23,6 +23,7 @@ class BroadcastWatcher {
         return new Promise((resolve, _) => {
             this.pc.onicecandidate = (event) => {
                 if (event.candidate === null && this.pc.localDescription) {
+                    console.info("@pc [ice null candidate]:", event)
                     resolve(this.pc.localDescription);
                 }
             };
@@ -72,7 +73,7 @@ class WebsocketStreamWatcher {
     }
 
     private newWSConn(): WebSocket {
-        const ws = new WebSocket("ws:/api/v1/ws/stream/watch");
+        const ws = new WebSocket(`ws://${import.meta.env.VITE_API_ADDR}/api/v1/ws/stream/watch`);
         console.info("@ws: connectiong...");
 
         ws.onerror = (err) => {
@@ -85,6 +86,7 @@ class WebsocketStreamWatcher {
 
         ws.onmessage = ({ data }) => {
             let json = JSON.parse(data) as WebSocketMessage;
+            console.info("@ws [message]:", json)
 
             if (json.error) return console.log(json.error);
             else if (json.data) this.sendAnswer(json.data);
@@ -113,4 +115,4 @@ class WebsocketStreamWatcher {
     }
 }
 
-export default { WebsocketStreamWatcher };
+export { WebsocketStreamWatcher };

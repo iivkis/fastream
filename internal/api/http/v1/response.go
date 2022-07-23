@@ -1,4 +1,4 @@
-package apihv1
+package apictrlv1
 
 type stdResponse struct {
 	Data  interface{} `json:"data"`

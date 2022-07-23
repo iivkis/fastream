@@ -50,8 +50,10 @@ class BroadcastCreator {
     public NewOffer(): Promise<RTCSessionDescription> {
         return new Promise((resolve, _) => {
             this.pc.onicecandidate = (event) => {
-                if (event.candidate === null && this.pc.localDescription)
+                if (event.candidate === null && this.pc.localDescription) {
+                    console.info("@pc [ice null candidate]:", event)
                     resolve(this.pc.localDescription);
+                }
             };
 
             this.pc.createOffer().then((sdp) => {
@@ -114,7 +116,7 @@ class WebsocketStreamCreator {
     }
 
     private newWSConn(): WebSocket {
-        const ws = new WebSocket("ws:/api/v1/ws/stream/create");
+        const ws = new WebSocket(`ws://${import.meta.env.VITE_API_ADDR}/api/v1/ws/stream/create`);
         console.info("@ws: connectiong...");
 
         ws.onerror = (err) => {
@@ -127,9 +129,10 @@ class WebsocketStreamCreator {
 
         ws.onmessage = ({ data }) => {
             let json = JSON.parse(data) as WebSocketMessage;
+            console.info("@ws [message]:", json)
 
             if (json.error) return console.error(json.error);
-            else if (json.data) this.setRemoteAnswer(json.data);
+            else if (json.data?.broadcastID) this.setRemoteAnswer(json.data);
             else this.sendOffer();
         };
 
