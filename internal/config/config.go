@@ -9,10 +9,8 @@ import (
 var once sync.Once
 
 var Env struct {
-	API_HOST string `mapstructure:"API_HOST"`
+	APP_HOST string `mapstructure:"APP_HOST"`
 	API_PORT string `mapstructure:"API_PORT"`
-
-	SPA_HOST string `mapstructure:"SPA_HOST"`
 	SPA_PORT string `mapstructure:"SPA_PORT"`
 }
 

@@ -11,8 +11,8 @@ import (
 
 func Launch() {
 	var (
-		addrAPI = fmt.Sprintf("%s:%s", config.Env.API_HOST, config.Env.API_PORT)
-		addrSPA = fmt.Sprintf("%s:%s", config.Env.SPA_HOST, config.Env.SPA_PORT)
+		addrAPI = fmt.Sprintf("%s:%s", config.Env.APP_HOST, config.Env.API_PORT)
+		addrSPA = fmt.Sprintf("%s:%s", config.Env.APP_HOST, config.Env.SPA_PORT)
 	)
 
 	//run API

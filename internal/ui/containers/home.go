@@ -37,7 +37,7 @@ func (c *HomeContainer) GetContent() *fyne.Container {
 
 func (c *Containers) InitHomeContainer() {
 	c.Home.BtnStartStream = widget.NewButton("начать стрим", func() {
-		webUI := fmt.Sprintf("http://%s:%s", config.Env.SPA_HOST, config.Env.SPA_PORT)
+		webUI := fmt.Sprintf("http://%s:%s", "localhost", config.Env.SPA_PORT)
 
 		switch runtime.GOOS {
 		case "linux":

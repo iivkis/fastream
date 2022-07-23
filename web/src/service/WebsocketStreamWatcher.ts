@@ -23,7 +23,7 @@ class BroadcastWatcher {
         return new Promise((resolve, _) => {
             this.pc.onicecandidate = (event) => {
                 if (event.candidate === null && this.pc.localDescription) {
-                    console.info("@pc [ice null candidate]:", event)
+                    console.info("@pc [ice null candidate]:", event);
                     resolve(this.pc.localDescription);
                 }
             };
@@ -55,9 +55,9 @@ class BroadcastWatcher {
         };
 
         pc.ontrack = (event) => {
-            console.info("@pc [track]:", event)
+            console.info("@pc [track]:", event);
             this.videoTag.srcObject = event.streams[0];
-        } 
+        };
 
         return pc;
     }
@@ -73,7 +73,11 @@ class WebsocketStreamWatcher {
     }
 
     private newWSConn(): WebSocket {
-        const ws = new WebSocket(`ws://${import.meta.env.VITE_API_ADDR}/api/v1/ws/stream/watch`);
+        const ws = new WebSocket(
+            `ws://${location.hostname}:${
+                import.meta.env.VITE_API_PORT
+            }/api/v1/ws/stream/watch`
+        );
         console.info("@ws: connectiong...");
 
         ws.onerror = (err) => {
@@ -86,7 +90,7 @@ class WebsocketStreamWatcher {
 
         ws.onmessage = ({ data }) => {
             let json = JSON.parse(data) as WebSocketMessage;
-            console.info("@ws [message]:", json)
+            console.info("@ws [message]:", json);
 
             if (json.error) return console.log(json.error);
             else if (json.data) this.sendAnswer(json.data);
