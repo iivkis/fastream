@@ -16,9 +16,7 @@
 
             <div class="main">
                 <div class="qr-code">
-                    <img
-                        src="https://expertnov.ru/800/600/https/upload.wikimedia.org/wikipedia/commons/7/78/Qrcode_wikipedia_fr_v2clean.png"
-                    />
+                    <img class="qr-code__img" :src="ImgQRCodeBase64" />
                 </div>
 
                 <div class="ip-addr">
@@ -37,7 +35,7 @@
                         <i
                             class="ip-addr-link__copy bi bi-clipboard"
                             title="копировать ссылку"
-                            @click="CopyURLToClipboard"
+                            @click="copy(url)"
                         ></i>
                     </div>
                 </div>
@@ -68,7 +66,7 @@
 }
 
 .head-notice__text {
-    @apply w-2/3 py-2 mx-auto text-slate-600 text-center font-light text-sm;
+    @apply w-2/3 mt-2 mx-auto text-slate-600 text-center font-light text-sm;
 }
 
 .head-notice__text span {
@@ -76,14 +74,14 @@
 }
 
 .main {
-    @apply flex flex-col mt-5;
+    @apply flex flex-col;
 }
 
 .qr-code {
     @apply flex flex-col items-center;
 }
 
-.qr-code img {
+.qr-code__img {
     @apply w-64;
 }
 
@@ -92,7 +90,7 @@
 }
 
 .ip-addr__instruction {
-    @apply py-4 text-center text-slate-600 tracking-tight;
+    @apply pb-2 text-center text-slate-600 tracking-tight;
 }
 
 .ip-addr-link {
@@ -109,45 +107,51 @@
 </style>
 
 <script lang="ts">
-import { defineComponent } from "vue";
+import QRCode from "qrcode";
 import copy from "copy-to-clipboard";
+import { defineComponent, ref } from "vue";
 
-// import img
-import icon from "../assets/icon.png";
 import { WebsocketStreamCreator } from "../service/WebsocketStream/WebsocketStreamCreator";
+import { GetLocalIP } from "../service/api/v1/utils";
+import icon from "../assets/icon.png";
 
 export default defineComponent({
     name: "Stream",
+
     async setup() {
-        const url = "http://192.168.1.1:8080/watch";
+        const localIP = (await GetLocalIP()).local_ip;
+        const url = `http://${localIP}:${location.port}/watch`;
 
         const config: DisplayMediaStreamConstraints = {
             audio: false,
             video: {
                 width: {
                     ideal: 1366,
-                    // max: 1920,
                 },
                 height: {
                     ideal: 768,
-                    // max: 1080,
                 },
                 frameRate: 30,
             },
         };
 
-        const stream = await navigator.mediaDevices.getDisplayMedia(config);
-
-        new WebsocketStreamCreator(stream);
-
-        function CopyURLToClipboard() {
-            copy(url);
+        //create stream & webscoket
+        {
+            const stream = await navigator.mediaDevices.getDisplayMedia(config);
+            new WebsocketStreamCreator(stream);
         }
+
+        //create qr code
+        var ImgQRCodeBase64 = ref("");
+        QRCode.toDataURL(url, (err, base64) => {
+            ImgQRCodeBase64.value = base64;
+        });
 
         return {
             icon,
             url,
-            CopyURLToClipboard,
+            copy,
+            ImgQRCodeBase64,
         };
     },
 });

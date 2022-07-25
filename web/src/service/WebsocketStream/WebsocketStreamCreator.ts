@@ -1,6 +1,6 @@
 import {
-    WebSocketMessage,
-    WebSocketMessageData,
+    WebsocketMessage,
+    WebsocketMessageData,
     ICE_SERVERS_URLS,
 } from "./WebsocketStream.define";
 
@@ -132,7 +132,7 @@ class WebsocketStreamCreator {
         };
 
         ws.onmessage = ({ data }) => {
-            let json = JSON.parse(data) as WebSocketMessage;
+            let json = JSON.parse(data) as WebsocketMessage;
             console.info("@ws [message]:", json);
 
             if (json.error) return console.error(json.error);
@@ -147,7 +147,7 @@ class WebsocketStreamCreator {
         let broadcast = new BroadcastCreator(this.stream);
 
         broadcast.NewOffer().then((sdp) => {
-            let msg: WebSocketMessageData = {
+            let msg: WebsocketMessageData = {
                 broadcastID: broadcast.ID,
                 type: sdp.type,
                 sdp: sdp.sdp,
@@ -159,7 +159,7 @@ class WebsocketStreamCreator {
         this.broadcastStorage.Add(broadcast);
     }
 
-    private setRemoteAnswer(data: WebSocketMessageData): void {
+    private setRemoteAnswer(data: WebsocketMessageData): void {
         let broadcast = this.broadcastStorage.GetByID(data.broadcastID);
 
         if (broadcast) {

@@ -6,14 +6,14 @@ const ICE_SERVERS_URLS = [
     "stun:stun4.l.google.com:19302",
 ];
 
-export interface WebSocketMessageData {
+export interface WebsocketMessageData {
     broadcastID: string;
     type: RTCSdpType;
     sdp: string;
 }
 
-export interface WebSocketMessage {
-    data?: WebSocketMessageData;
+export interface WebsocketMessage {
+    data?: WebsocketMessageData;
     error?: string;
 }
 

@@ -1,7 +1,7 @@
 import {
     ICE_SERVERS_URLS,
-    WebSocketMessage,
-    WebSocketMessageData,
+    WebsocketMessage,
+    WebsocketMessageData,
 } from "./WebsocketStream.define";
 
 class BroadcastWatcher {
@@ -89,7 +89,7 @@ class WebsocketStreamWatcher {
         };
 
         ws.onmessage = ({ data }) => {
-            let json = JSON.parse(data) as WebSocketMessage;
+            let json = JSON.parse(data) as WebsocketMessage;
             console.info("@ws [message]:", json);
 
             if (json.error) return console.log(json.error);
@@ -99,7 +99,7 @@ class WebsocketStreamWatcher {
         return ws;
     }
 
-    private async sendAnswer(data: WebSocketMessageData): Promise<void> {
+    private async sendAnswer(data: WebsocketMessageData): Promise<void> {
         let offer = new RTCSessionDescription({
             type: data.type,
             sdp: data.sdp,
@@ -108,7 +108,7 @@ class WebsocketStreamWatcher {
         await this.bcWatcher.SetRemoteOffer(offer);
 
         this.bcWatcher.NewAnswer().then((answer) => {
-            let msg: WebSocketMessageData = {
+            let msg: WebsocketMessageData = {
                 broadcastID: data.broadcastID,
                 type: answer.type,
                 sdp: answer.sdp,
