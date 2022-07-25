@@ -46,11 +46,11 @@ func (c *StreamController) getOwnerOffer() *WebsocketMessageData {
 }
 
 func (c *StreamController) getWatcherAnswer(watcherConn *websocket.Conn, offer *WebsocketMessageData) *WebsocketMessageData {
-	watcherConn.WriteJSON(newResponse(offer, nil))
+	watcherConn.WriteJSON(NewResponse(offer, nil))
 
 	var answer WebsocketMessageData
 	if err := watcherConn.ReadJSON(&answer); err != nil {
-		watcherConn.WriteJSON(newResponse(nil, err))
+		watcherConn.WriteJSON(NewResponse(nil, err))
 		return nil
 	}
 
@@ -60,13 +60,13 @@ func (c *StreamController) getWatcherAnswer(watcherConn *websocket.Conn, offer *
 func (c *StreamController) WSCreate(ctx *gin.Context) {
 	conn, err := c.upgrader.Upgrade(ctx.Writer, ctx.Request, nil)
 	if err != nil {
-		ctx.JSON(http.StatusBadRequest, newResponse(nil, err))
+		ctx.JSON(http.StatusBadRequest, NewResponse(nil, err))
 		return
 	}
 	defer conn.Close()
 
 	if !c.mx.TryLock() {
-		conn.WriteJSON(newResponse(nil, fmt.Errorf("stream already exists")))
+		conn.WriteJSON(NewResponse(nil, fmt.Errorf("stream already exists")))
 		return
 	}
 	defer c.mx.Unlock()
@@ -85,7 +85,7 @@ func (c *StreamController) WSCreate(ctx *gin.Context) {
 	go func() {
 		for range c.requestOfferChan {
 			//send empty object `{}` to get offer
-			conn.WriteJSON(newResponse(gin.H{}, nil))
+			conn.WriteJSON(NewResponse(gin.H{}, nil))
 		}
 	}()
 
@@ -104,7 +104,7 @@ func (c *StreamController) WSCreate(ctx *gin.Context) {
 func (c *StreamController) WSWatch(ctx *gin.Context) {
 	conn, err := c.upgrader.Upgrade(ctx.Writer, ctx.Request, nil)
 	if err != nil {
-		ctx.JSON(http.StatusBadRequest, newResponse(nil, err))
+		ctx.JSON(http.StatusBadRequest, NewResponse(nil, err))
 		return
 	}
 	defer conn.Close()
@@ -113,7 +113,7 @@ func (c *StreamController) WSWatch(ctx *gin.Context) {
 
 	if answer := c.getWatcherAnswer(conn, offer); answer != nil {
 		if c.ownerConn != nil {
-			msg := newResponse(WebsocketMessageData{
+			msg := NewResponse(WebsocketMessageData{
 				BroadcastID: answer.BroadcastID,
 				Type:        answer.Type,
 				SDP:         answer.SDP,
