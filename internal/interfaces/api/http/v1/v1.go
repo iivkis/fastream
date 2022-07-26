@@ -2,19 +2,20 @@ package restfulv1
 
 import (
 	"github.com/gin-gonic/gin"
+	servicev1 "github.com/iivkis/fastream/internal/service/v1"
 )
 
 type Controllers struct {
 	engine *gin.Engine
 
-	Stream *StreamController
-	Utils  *UtilsController
+	Stream *streamController
+	Utils  *utilsController
 }
 
-func SetControllers(engine *gin.Engine) {
+func SetControllers(engine *gin.Engine, service *servicev1.Service) {
 	handler := Controllers{
-		Stream: NewStreamController(),
-		Utils:  NewUtilsController(),
+		Stream: newStreamController(service),
+		Utils:  newUtilsController(),
 	}
 
 	handler.engine = engine
@@ -30,8 +31,8 @@ func (h *Controllers) setAPI() {
 
 	//create stream & watch
 	{
-		api.GET("/ws/stream/create", h.Stream.WSCreate)
-		api.GET("/ws/stream/watch", h.Stream.WSWatch)
+		api.GET("/ws/stream/create", h.Stream.Create)
+		api.GET("/ws/stream/watch", h.Stream.Watch)
 	}
 
 	//utils

@@ -1,63 +1,44 @@
 package restfulv1
 
 import (
-	"fmt"
 	"log"
 	"net/http"
-	"sync"
 
 	"github.com/gin-gonic/gin"
 	"github.com/gorilla/websocket"
+	servicev1 "github.com/iivkis/fastream/internal/service/v1"
 )
 
-type WebsocketMessageData struct {
-	BroadcastID string `json:"broadcastID"`
-	Type        string `json:"type"`
-	SDP         string `json:"sdp"`
+type streamController struct {
+	service  *servicev1.Service
+	upgrader *websocket.Upgrader
 }
 
-type StreamController struct {
-	mx sync.Mutex
-
-	upgrader  *websocket.Upgrader
-	ownerConn *websocket.Conn
-
-	offersChan       chan *WebsocketMessageData
-	requestOfferChan chan struct{}
-}
-
-func NewStreamController() *StreamController {
-	controller := &StreamController{
-		upgrader: &websocket.Upgrader{
-			CheckOrigin: func(r *http.Request) bool {
-				return true
-			}},
-
-		offersChan:       make(chan *WebsocketMessageData),
-		requestOfferChan: make(chan struct{}),
+func newStreamController(service *servicev1.Service) *streamController {
+	upgrader := &websocket.Upgrader{
+		CheckOrigin: func(r *http.Request) bool {
+			return true
+		},
 	}
 
-	return controller
-}
-
-func (c *StreamController) getOwnerOffer() *WebsocketMessageData {
-	c.requestOfferChan <- struct{}{}
-	return <-c.offersChan
-}
-
-func (c *StreamController) getWatcherAnswer(watcherConn *websocket.Conn, offer *WebsocketMessageData) *WebsocketMessageData {
-	watcherConn.WriteJSON(NewResponse(offer, nil))
-
-	var answer WebsocketMessageData
-	if err := watcherConn.ReadJSON(&answer); err != nil {
-		watcherConn.WriteJSON(NewResponse(nil, err))
-		return nil
+	return &streamController{
+		service:  service,
+		upgrader: upgrader,
 	}
-
-	return &answer
 }
 
-func (c *StreamController) WSCreate(ctx *gin.Context) {
+func (c *streamController) Create(ctx *gin.Context) {
+	conn, err := c.upgrader.Upgrade(ctx.Writer, ctx.Request, nil)
+	if err != nil {
+		log.Println(err)
+		return
+	}
+	defer conn.Close()
+
+	c.service.Stream.Create(ctx.Request.Context(), newStreamConnection(conn))
+}
+
+func (c *streamController) Watch(ctx *gin.Context) {
 	conn, err := c.upgrader.Upgrade(ctx.Writer, ctx.Request, nil)
 	if err != nil {
 		ctx.JSON(http.StatusBadRequest, NewResponse(nil, err))
@@ -65,61 +46,5 @@ func (c *StreamController) WSCreate(ctx *gin.Context) {
 	}
 	defer conn.Close()
 
-	if !c.mx.TryLock() {
-		conn.WriteJSON(NewResponse(nil, fmt.Errorf("stream already exists")))
-		return
-	}
-	defer c.mx.Unlock()
-
-	defer func() {
-		c.ownerConn = nil
-
-		close(c.requestOfferChan)
-		c.requestOfferChan = make(chan struct{})
-
-		log.Println("owner websocket connection was closed")
-	}()
-
-	c.ownerConn = conn
-
-	go func() {
-		for range c.requestOfferChan {
-			//send empty object `{}` to get offer
-			conn.WriteJSON(NewResponse(gin.H{}, nil))
-		}
-	}()
-
-	for {
-		var offer WebsocketMessageData
-
-		if err := c.ownerConn.ReadJSON(&offer); err != nil {
-			log.Println(err)
-			return
-		}
-
-		c.offersChan <- &offer
-	}
-}
-
-func (c *StreamController) WSWatch(ctx *gin.Context) {
-	conn, err := c.upgrader.Upgrade(ctx.Writer, ctx.Request, nil)
-	if err != nil {
-		ctx.JSON(http.StatusBadRequest, NewResponse(nil, err))
-		return
-	}
-	defer conn.Close()
-
-	offer := c.getOwnerOffer()
-
-	if answer := c.getWatcherAnswer(conn, offer); answer != nil {
-		if c.ownerConn != nil {
-			msg := NewResponse(WebsocketMessageData{
-				BroadcastID: answer.BroadcastID,
-				Type:        answer.Type,
-				SDP:         answer.SDP,
-			}, nil)
-
-			c.ownerConn.WriteJSON(msg)
-		}
-	}
+	c.service.Stream.Watch(ctx.Request.Context(), newStreamConnection(conn))
 }

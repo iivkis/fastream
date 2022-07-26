@@ -7,13 +7,13 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-type UtilsController struct{}
+type utilsController struct{}
 
-func NewUtilsController() *UtilsController {
-	return &UtilsController{}
+func newUtilsController() *utilsController {
+	return &utilsController{}
 }
 
-func (c *UtilsController) GetLocalIP(ctx *gin.Context) {
+func (c *utilsController) GetLocalIP(ctx *gin.Context) {
 	conn, err := net.Dial("udp", "8.8.8.8:80")
 	if err != nil {
 		ctx.JSON(http.StatusInternalServerError, NewResponse(nil, err))
