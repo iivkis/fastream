@@ -35,10 +35,8 @@ type (
 	}
 
 	streamService struct {
-		mx sync.Mutex
-
-		requestOffer chan struct{}
-
+		mx              sync.Mutex
+		requestOffer    chan struct{}
 		receivedOffers  chan *StreamMessage
 		receivedAnswers chan *StreamMessage
 	}
@@ -52,13 +50,13 @@ func newStreamService() *streamService {
 	}
 }
 
-func (s *streamService) getOffer() *StreamMessage {
+func (s *streamService) getOffer() chan *StreamMessage {
 	s.requestOffer <- struct{}{}
-	return <-s.receivedOffers
+	return s.receivedOffers
 }
 
-func (s *streamService) sendAnswer(a *StreamMessage) {
-	s.receivedAnswers <- a
+func (s *streamService) sendAnswer(answer *StreamMessage) {
+	s.receivedAnswers <- answer
 }
 
 func (s *streamService) Create(ctx context.Context, owner StreamConnection) {
@@ -67,30 +65,32 @@ func (s *streamService) Create(ctx context.Context, owner StreamConnection) {
 	}
 	defer s.mx.Unlock()
 
-	defer func() {
-		close(s.requestOffer)
-		s.requestOffer = make(chan struct{})
-
-		close(s.receivedAnswers)
-		s.receivedAnswers = make(chan *StreamMessage)
-	}()
-
 	//отправитель запросов на получение WebRTC offer
 	go func() {
-		for range s.requestOffer {
-			err := owner.Write(NewStreamMessage("", "", ""))
-			if err != nil {
-				log.Println(err)
+		for {
+			select {
+			case <-s.requestOffer:
+				err := owner.Write(NewStreamMessage("", "", ""))
+				if err != nil {
+					log.Println(err)
+				}
+			case <-ctx.Done():
+				return
 			}
 		}
 	}()
 
 	//отправляет WebRTC answer
 	go func() {
-		for answer := range s.receivedAnswers {
-			err := owner.Write(answer)
-			if err != nil {
-				log.Println(err)
+		for {
+			select {
+			case answer := <-s.receivedAnswers:
+				err := owner.Write(answer)
+				if err != nil {
+					log.Println(err)
+				}
+			case <-ctx.Done():
+				return
 			}
 		}
 	}()
@@ -106,19 +106,26 @@ func (s *streamService) Create(ctx context.Context, owner StreamConnection) {
 }
 
 func (s *streamService) Watch(ctx context.Context, watcher StreamConnection) {
-	offer := s.getOffer()
+	next := func(offer *StreamMessage) {
+		err := watcher.Write(offer)
+		if err != nil {
+			log.Println(err)
+			return
+		}
 
-	err := watcher.Write(offer)
-	if err != nil {
-		log.Println(err)
-		return
+		answer, err := watcher.Read()
+		if err != nil {
+			log.Println(err)
+			return
+		}
+
+		s.sendAnswer(answer)
 	}
 
-	answer, err := watcher.Read()
-	if err != nil {
-		log.Println(err)
+	select {
+	case offer := <-s.getOffer():
+		next(offer)
+	case <-ctx.Done():
 		return
 	}
-
-	s.sendAnswer(answer)
 }
