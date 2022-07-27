@@ -1,8 +1,8 @@
-package restfulv1
+package restful
 
 import (
 	"github.com/gorilla/websocket"
-	servicev1 "github.com/iivkis/fastream/internal/service/v1"
+	"github.com/iivkis/fastream/internal/service/v1"
 	"github.com/pion/webrtc/v3"
 )
 
@@ -24,11 +24,11 @@ type streamConnection struct {
 	*websocket.Conn
 }
 
-func newStreamConnection(c *websocket.Conn) servicev1.StreamConnection {
+func newStreamConnection(c *websocket.Conn) service.StreamConnection {
 	return &streamConnection{c}
 }
 
-func (c *streamConnection) Read() (*servicev1.StreamMessage, error) {
+func (c *streamConnection) Read() (*service.StreamMessage, error) {
 	var d streamConnectionMessage
 
 	err := c.ReadJSON(&d)
@@ -36,11 +36,11 @@ func (c *streamConnection) Read() (*servicev1.StreamMessage, error) {
 		return nil, err
 	}
 
-	m := servicev1.NewStreamMessage(d.BroadcastID, d.Type, d.SDP)
+	m := service.NewStreamMessage(d.BroadcastID, d.Type, d.SDP)
 	return m, nil
 }
 
-func (c *streamConnection) Write(m *servicev1.StreamMessage) error {
+func (c *streamConnection) Write(m *service.StreamMessage) error {
 	d := newStreamConnectionMessage(
 		m.BroadcastID,
 		m.Session.Type,

@@ -20,7 +20,7 @@ func NewUI() *UI {
 func (ui *UI) init() {
 	ui.app = app.New()
 	ui.win = ui.app.NewWindow("Fastream")
-	containers.Add(ui.win)
+	containers.Setup(ui.win)
 }
 
 func (ui *UI) Run() {

@@ -1,8 +1,8 @@
-package restfulv1
+package restful
 
 import (
 	"github.com/gin-gonic/gin"
-	servicev1 "github.com/iivkis/fastream/internal/service/v1"
+	"github.com/iivkis/fastream/internal/service/v1"
 )
 
 type Controllers struct {
@@ -12,13 +12,14 @@ type Controllers struct {
 	Utils  *utilsController
 }
 
-func SetControllers(engine *gin.Engine, service *servicev1.Service) {
+func SetupControllersV1(engine *gin.Engine, service *service.Service) {
 	handler := Controllers{
 		Stream: newStreamController(service),
 		Utils:  newUtilsController(),
 	}
 
 	handler.engine = engine
+
 	handler.init()
 }
 

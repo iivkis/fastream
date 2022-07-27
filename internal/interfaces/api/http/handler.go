@@ -23,7 +23,7 @@ func NewHTTPHandler(serviceV1 *servicev1.Service) *HTTPHandler {
 
 func (h *HTTPHandler) init() {
 	h.engine.Use(cors.Default())
-	restfulv1.SetControllers(h.engine, h.serviceV1)
+	restfulv1.SetupControllersV1(h.engine, h.serviceV1)
 }
 
 func (h *HTTPHandler) Run(addr string) error {

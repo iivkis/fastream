@@ -1,4 +1,4 @@
-package restfulv1
+package restful
 
 import (
 	"log"

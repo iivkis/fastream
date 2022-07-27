@@ -1,7 +1,7 @@
 //Author: Ivan Kistochkin
 //Desc: Сервис для обменивания SDP между стримером и зрителем
 
-package servicev1
+package service
 
 import (
 	"context"
