@@ -9,3 +9,7 @@ front-run:
 
 front-build:
 	cd ./web && npm run build
+
+full-build: 
+	make server-build
+	make front-build

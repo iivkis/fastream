@@ -42,7 +42,7 @@ type (
 	}
 )
 
-func newStreamService() *streamService {
+func newStreamService() stream {
 	return &streamService{
 		requestOffer:    make(chan struct{}),
 		receivedOffers:  make(chan *StreamMessage),

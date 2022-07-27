@@ -15,7 +15,7 @@ type Controllers struct {
 func SetupControllersV1(engine *gin.Engine, service *service.Service) {
 	handler := Controllers{
 		Stream: newStreamController(service),
-		Utils:  newUtilsController(),
+		Utils:  newUtilsController(service),
 	}
 
 	handler.engine = engine
