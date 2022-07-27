@@ -56,7 +56,7 @@
 
 <script lang="ts">
 import { defineComponent, ref } from "vue";
-import { WebsocketMessageData } from "../../service/WebsocketChat";
+import { WebsocketMessageData } from "../../service/WebsocketChat/types";
 
 export default defineComponent({
     name: "ChatMessages",

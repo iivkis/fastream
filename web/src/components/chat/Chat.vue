@@ -9,7 +9,7 @@
 
 <script lang="ts">
 import { defineComponent, ref } from "vue";
-import { Settings } from "./chat.interface";
+import { Settings } from "./chat.types";
 
 import ChatHead from "./Head.vue";
 import ChatMessages from "./Messages.vue";

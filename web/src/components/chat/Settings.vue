@@ -60,7 +60,7 @@
 </style>
 
 <script lang="ts">
-import { Settings } from "./chat.interface";
+import { Settings } from "./chat.types";
 import { defineComponent, PropType } from "vue";
 
 export default defineComponent({
