@@ -9,6 +9,7 @@ type Controllers struct {
 	engine *gin.Engine
 
 	Stream *streamController
+	Chat   *chatController
 	Utils  *utilsController
 }
 
@@ -16,6 +17,7 @@ func SetupControllersV1(engine *gin.Engine, service *service.Service) {
 	handler := Controllers{
 		Stream: newStreamController(service),
 		Utils:  newUtilsController(service),
+		Chat:   newChatController(service),
 	}
 
 	handler.engine = engine
@@ -34,6 +36,11 @@ func (h *Controllers) setAPI() {
 	{
 		api.GET("/ws/stream/create", h.Stream.Create)
 		api.GET("/ws/stream/watch", h.Stream.Watch)
+	}
+
+	//chat
+	{
+		api.GET("/ws/chat", h.Chat.Connect)
 	}
 
 	//utils
