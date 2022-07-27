@@ -3,7 +3,7 @@ export interface WebsocketMessageData {
     content: string;
 }
 
-interface WebsocketMessage {
+export interface WebsocketMessage {
     data?: WebsocketMessageData;
     error?: string;
 }

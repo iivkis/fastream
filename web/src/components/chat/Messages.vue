@@ -8,7 +8,7 @@
             >
                 <div class="messages-item-wrap">
                     <span class="messages-item-wrap__username">
-                        {{ message.username }}
+                        {{ message.username}}
                     </span>
                     <p class="messages-item-wrap__content">
                         {{ message.content }}
@@ -55,39 +55,16 @@
 </style>
 
 <script lang="ts">
-import { defineComponent, ref } from "vue";
+import { defineComponent, PropType } from "vue";
 import { WebsocketMessageData } from "../../service/WebsocketChat/types";
 
 export default defineComponent({
     name: "ChatMessages",
-    setup() {
-        var messages = ref([
-            {
-                username: "Система",
-                content:
-                    "Добро пожаловать в чат! Здесь ты можешь обмениваться сообщениями со зрителями. Подсказка: открой настройки, чтобы изменменить имя, которое будет отображаться в сообщении",
-            },
-            {
-                username: "Georgy",
-                content: "float lore da bucaib csbia cnac;nisvbdua cnaiopna",
-            },
-            {
-                username: "Lolita",
-                content:
-                    "Lorem ipsum dolor sit amet, consectetur adipisicing elit. Odio sint veritatis expedita suscipit! Voluptatem neque consequuntur laudantium. Nihil, odio voluptatum.",
-            },
-            {
-                username: "Georgy",
-                content: "https://vk.com/im?sel=c103",
-            },
-            {
-                username: "Lolita",
-                content:
-                    "Lorem dolor sit amet, consectetur adipisicing elit. Odio sint veritatis expedita suscipit! Voluptatem neque consequuntur laudantium. Nihil, odio voluptatum.",
-            },
-        ] as Array<WebsocketMessageData>);
-
-        return { messages };
+    props: {
+        messages: {
+            required: true,
+            type: Object as PropType<WebsocketMessageData[]>,
+        },
     },
 });
 </script>

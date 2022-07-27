@@ -30,10 +30,17 @@
 </style>
 
 <script lang="ts">
-import { defineComponent, ref } from "vue";
+import { defineComponent, PropType, ref } from "vue";
 
 export default defineComponent({
     name: "ChatInput",
+
+    props: {
+        send: {
+            type: Function,
+        }
+    },
+
     setup() {
         const message = ref("");
         return { message };
