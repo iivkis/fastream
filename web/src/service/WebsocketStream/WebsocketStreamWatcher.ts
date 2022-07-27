@@ -1,8 +1,5 @@
-import {
-    ICE_SERVERS_URLS,
-    WebsocketMessage,
-    WebsocketMessageData,
-} from "./WebsocketStream.define";
+import { WebsocketMessage, WebsocketMessageData } from "./types";
+import { ICE_SERVERS_URLS } from "./consts";
 
 class BroadcastWatcher {
     readonly videoTag: HTMLMediaElement;

@@ -1,9 +1,5 @@
-import {
-    WebsocketMessage,
-    WebsocketMessageData,
-    ICE_SERVERS_URLS,
-} from "./WebsocketStream.define";
-
+import { WebsocketMessage, WebsocketMessageData } from "./types";
+import { ICE_SERVERS_URLS } from "./consts";
 import { v4 as uuidv4 } from "uuid";
 
 class BroadcastStorage {
