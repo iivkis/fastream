@@ -70,11 +70,14 @@ class WebsocketStreamWatcher {
     }
 
     private newWSConn(): WebSocket {
-        const ws = new WebSocket(
-            `ws://${location.hostname}:${
-                import.meta.env.VITE_API_PORT
-            }/api/v1/ws/stream/watch`
-        );
+        const conf = {
+            host: location.hostname,
+            port: import.meta.env.VITE_API_PORT,
+            url: "api/v1/ws/stream/watch",
+        };
+
+        const ws = new WebSocket(`ws://${conf.host}:${conf.port}/${conf.url}`);
+
         console.info("@ws: connectiong...");
 
         ws.onerror = (err) => {
