@@ -8,39 +8,14 @@ import (
 	"errors"
 	"log"
 	"sync"
-
-	"github.com/pion/webrtc/v3"
 )
 
-type StreamMessage struct {
-	BroadcastID string
-	Session     *webrtc.SessionDescription
+type streamService struct {
+	mx              sync.Mutex
+	requestOffer    chan struct{}
+	receivedOffers  chan *StreamMessage
+	receivedAnswers chan *StreamMessage
 }
-
-func NewStreamMessage(broadcastID, sdpType, sdp string) *StreamMessage {
-	return &StreamMessage{
-		BroadcastID: broadcastID,
-		Session: &webrtc.SessionDescription{
-			Type: webrtc.NewSDPType(sdpType),
-			SDP:  sdp,
-		},
-	}
-}
-
-type (
-	StreamConnection interface {
-		Read() (*StreamMessage, error)
-		Write(*StreamMessage) error
-		WriteError(error) error
-	}
-
-	streamService struct {
-		mx              sync.Mutex
-		requestOffer    chan struct{}
-		receivedOffers  chan *StreamMessage
-		receivedAnswers chan *StreamMessage
-	}
-)
 
 func newStreamService() stream {
 	return &streamService{
