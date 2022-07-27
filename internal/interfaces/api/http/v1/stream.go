@@ -6,15 +6,15 @@ import (
 
 	"github.com/gin-gonic/gin"
 	"github.com/gorilla/websocket"
-	servicev1 "github.com/iivkis/fastream/internal/service/v1"
+	"github.com/iivkis/fastream/internal/service/v1"
 )
 
 type streamController struct {
-	service  *servicev1.Service
+	service  *service.Service
 	upgrader *websocket.Upgrader
 }
 
-func newStreamController(service *servicev1.Service) *streamController {
+func newStreamController(service *service.Service) *streamController {
 	upgrader := &websocket.Upgrader{
 		CheckOrigin: func(r *http.Request) bool {
 			return true
