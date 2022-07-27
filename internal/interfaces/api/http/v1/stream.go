@@ -35,7 +35,7 @@ func (c *streamController) Create(ctx *gin.Context) {
 	}
 	defer conn.Close()
 
-	c.service.Stream.Create(ctx.Request.Context(), newStreamConnection(conn))
+	c.service.Stream.Create(ctx.Request.Context(), newStreamConn(conn))
 }
 
 func (c *streamController) Watch(ctx *gin.Context) {
@@ -46,5 +46,5 @@ func (c *streamController) Watch(ctx *gin.Context) {
 	}
 	defer conn.Close()
 
-	c.service.Stream.Watch(ctx.Request.Context(), newStreamConnection(conn))
+	c.service.Stream.Watch(ctx.Request.Context(), newStreamConn(conn))
 }
