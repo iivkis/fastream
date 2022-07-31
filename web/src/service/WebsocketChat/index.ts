@@ -7,7 +7,7 @@ class WebsocketChat {
         this.ws = this.newConnection();
     }
 
-    public OnMessage(message: WebsocketMessageData) {}
+    public OnMessage(message: WebsocketMessageData) { }
 
     public Send(message: WebsocketMessageData) {
         this.ws.send(JSON.stringify(message));
