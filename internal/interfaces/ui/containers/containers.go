@@ -14,7 +14,6 @@ type Containers struct {
 func Setup(win fyne.Window) {
 	c := &Containers{win: win}
 
-	// win.Resize(fyne.NewSize(300, 200))
 	win.SetFixedSize(true)
 	win.CenterOnScreen()
 
