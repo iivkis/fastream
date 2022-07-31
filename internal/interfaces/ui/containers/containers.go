@@ -11,16 +11,20 @@ type Containers struct {
 	Home HomeContainer
 }
 
-func Setup(win fyne.Window) {
-	c := &Containers{win: win}
-
-	win.SetFixedSize(true)
-	win.CenterOnScreen()
-
-	c.init()
+func newContainers(win fyne.Window) *Containers {
+	return &Containers{win: win}
 }
 
 func (c *Containers) init() {
 	c.InitHomeContainer()
 	c.win.SetContent(c.Home.GetContent())
+}
+
+func Setup(win fyne.Window) {
+	c := newContainers(win)
+
+	win.SetFixedSize(true)
+	win.CenterOnScreen()
+
+	c.init()
 }
